@@ -1,10 +1,5 @@
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <iomanip>
-#include <algorithm>
-#include <map>
-#include <limits>
+#include <bits/stdc++.h>
+
 using namespace std;
 
 class User
@@ -42,15 +37,11 @@ public:
         cout << "Total Calories Burned: " << totalCaloriesBurned << endl;
         cout << "Total Calories Consumed: " << totalCaloriesConsumed << endl;
 
-        if (totalCaloriesBurned > totalCaloriesConsumed)
+        if (totalCaloriesBurned < totalCaloriesConsumed)
         {
-            cout << "Calories Deficit: " << totalCaloriesBurned - totalCaloriesConsumed << endl;
+            cout << "Calories Remain: " << totalCaloriesConsumed - totalCaloriesBurned << endl;
         }
-        else if (totalCaloriesBurned < totalCaloriesConsumed)
-        {
-            cout << "Calories Surplus: " << totalCaloriesConsumed - totalCaloriesBurned << endl;
-        }
-        else
+        else if (totalCaloriesBurned == totalCaloriesConsumed)
         {
             cout << "Calories Consumed = Calories Burned" << endl;
         }
@@ -150,7 +141,7 @@ public:
         {
             cout << "Enter User ID: ";
             cin >> userId;
-            if (cin.fail())
+            if (cin.fail() || userId <= 0)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -295,7 +286,7 @@ public:
         {
             cout << "Enter User ID: ";
             cin >> userId;
-            if (cin.fail())
+            if (cin.fail() || userId <= 0)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
