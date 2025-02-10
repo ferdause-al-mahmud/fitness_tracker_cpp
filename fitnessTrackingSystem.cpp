@@ -9,14 +9,19 @@ private:
     string userName;
     double totalCaloriesBurned;
     double totalCaloriesConsumed;
+    double weight;
+    double height;
 
 public:
-    User(int id, string name) : userId(id), userName(name), totalCaloriesBurned(0), totalCaloriesConsumed(0) {}
+    User(int id, string name, double w, double h)
+        : userId(id), userName(name), totalCaloriesBurned(0), totalCaloriesConsumed(0), weight(w), height(h) {}
 
     int getUserId() const { return userId; }
     string getUserName() const { return userName; }
     double getTotalCaloriesBurned() const { return totalCaloriesBurned; }
     double getTotalCaloriesConsumed() const { return totalCaloriesConsumed; }
+    double getWeight() const { return weight; }
+    double getHeight() const { return height; }
 
     void logWorkout(const string &exerciseType, double duration, double caloriesBurned)
     {
@@ -51,7 +56,7 @@ public:
 
     void saveToFile(ofstream &outFile) const
     {
-        outFile << userId << "," << userName << "," << totalCaloriesBurned << "," << totalCaloriesConsumed << endl;
+        outFile << userId << "," << userName << "," << totalCaloriesBurned << "," << totalCaloriesConsumed << "," << weight << "," << height << endl;
     }
 
     void loadFromFile(const string &line)
@@ -59,11 +64,34 @@ public:
         size_t pos1 = line.find(',');
         size_t pos2 = line.find(',', pos1 + 1);
         size_t pos3 = line.find(',', pos2 + 1);
+        size_t pos4 = line.find(',', pos3 + 1);
+        size_t pos5 = line.find(',', pos4 + 1);
 
         userId = stoi(line.substr(0, pos1));
         userName = line.substr(pos1 + 1, pos2 - pos1 - 1);
         totalCaloriesBurned = stod(line.substr(pos2 + 1, pos3 - pos2 - 1));
-        totalCaloriesConsumed = stod(line.substr(pos3 + 1));
+        totalCaloriesConsumed = stod(line.substr(pos3 + 1, pos4 - pos3 - 1));
+        weight = stod(line.substr(pos4 + 1, pos5 - pos4 - 1));
+        height = stod(line.substr(pos5 + 1));
+    }
+
+    double calculateBMI() const
+    {
+        if (height <= 0)
+            return 0;
+        return weight / (height * height);
+    }
+
+    string getBMICategory() const
+    {
+        double bmi = calculateBMI();
+        if (bmi < 18.5)
+            return "Underweight";
+        if (bmi < 25)
+            return "Normal weight";
+        if (bmi < 30)
+            return "Overweight";
+        return "Obese";
     }
 };
 
@@ -97,7 +125,7 @@ private:
             string line;
             while (getline(inFile, line))
             {
-                User user(0, "");
+                User user(0, "", 0, 0);
                 user.loadFromFile(line);
                 users.push_back(user);
             }
@@ -136,6 +164,7 @@ public:
     {
         int userId;
         string userName;
+        double weight, height;
 
         while (true)
         {
@@ -160,7 +189,35 @@ public:
         cout << "Enter User Name: ";
         getline(cin, userName);
 
-        users.emplace_back(userId, userName);
+        while (true)
+        {
+            cout << "Enter User Weight (in kg): ";
+            cin >> weight;
+            if (cin.fail() || weight <= 0)
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter a positive numeric value." << endl;
+                continue;
+            }
+            break;
+        }
+
+        while (true)
+        {
+            cout << "Enter User Height (in meters): ";
+            cin >> height;
+            if (cin.fail() || height <= 0)
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter a positive numeric value." << endl;
+                continue;
+            }
+            break;
+        }
+
+        users.emplace_back(userId, userName, weight, height);
         cout << "User created successfully!\n";
     }
 
@@ -321,6 +378,38 @@ public:
             cout << "User ID: " << user.getUserId() << ", Name: " << user.getUserName() << endl;
         }
     }
+
+    void measureBMI()
+    {
+        int userId;
+
+        while (true)
+        {
+            cout << "Enter User ID: ";
+            cin >> userId;
+            if (cin.fail() || userId <= 0)
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input. Please enter a valid numeric User ID." << endl;
+                continue;
+            }
+            break;
+        }
+
+        for (const auto &user : users)
+        {
+            if (user.getUserId() == userId)
+            {
+                double bmi = user.calculateBMI();
+                cout << "\nUser: " << user.getUserName() << endl;
+                cout << "BMI: " << fixed << setprecision(2) << bmi << endl;
+                cout << "Category: " << user.getBMICategory() << endl;
+                return;
+            }
+        }
+        cout << "User not found!\n";
+    }
 };
 
 int main()
@@ -336,7 +425,8 @@ int main()
         cout << "3. Log Meal\n";
         cout << "4. Display User Progress\n";
         cout << "5. List All Users\n";
-        cout << "6. Exit\n";
+        cout << "6. Measure BMI\n";
+        cout << "7. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
@@ -358,12 +448,15 @@ int main()
             tracker.listAllUsers();
             break;
         case 6:
+            tracker.measureBMI();
+            break;
+        case 7:
             cout << "Exiting...\n";
             break;
         default:
             cout << "Invalid choice! Try again.\n";
         }
-    } while (choice != 6);
+    } while (choice != 7);
 
     return 0;
 }
